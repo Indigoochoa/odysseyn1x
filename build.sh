@@ -42,8 +42,8 @@ done
 {
     umount work/chroot/proc
     umount work/chroot/sys
-    umount work/chroot/dev
     umount work/chroot/dev/pts
+    umount work/chroot/dev
 } > /dev/null 2>&1
 rm -rf work/
 
@@ -90,6 +90,7 @@ apt purge apt -y --allow-remove-essential
 EOF
 # Change initramfs compression to xz
 sed -i 's/COMPRESS=gzip/COMPRESS=xz/' work/chroot/etc/initramfs-tools/initramfs.conf
+chroot work/chroot /bin/bash -c '/sbin/chpasswd <<< root:pass'
 chroot work/chroot update-initramfs -u
 (
     cd work/chroot
@@ -131,9 +132,9 @@ mkdir -p work/chroot/root/odysseyra1n/
         -O https://github.com/coolstar/Odyssey-bootstrap/raw/master/bootstrap_1700.tar.gz \
         -O https://github.com/coolstar/Odyssey-bootstrap/raw/master/org.coolstar.sileo_2.1-1_iphoneos-arm.deb \
         -O https://github.com/coolstar/Odyssey-bootstrap/raw/master/org.swift.libswift_5.0-electra2_iphoneos-arm.deb
-    # Change compression format to xz
+    # Decompress
     gzip -dv ./*.tar.gz
-    tar -c bootstrap_1{5..7}00.tar | xz -zce9T 0 > bootstraps.tar.xz
+ xz -v9e -T0 ./*.tar
 )
 
 (
@@ -162,10 +163,10 @@ mkdir -p work/chroot/root/odysseyra1n/
     curl -L -O 'https://raw.githubusercontent.com/corellium/projectsandcastle/master/loader/load-linux.c'
     # Build load-linux.c and download checkra1n for the corresponding architecture
     if [ "$ARCH" = 'amd64' ]; then
-        gcc load-linux.c -o load-linux -lusb-1.0
+        clang -Oz load-linux.c -o load-linux -lusb-1.0
         curl -L -o checkra1n "$CHECKRA1N_AMD64"
     else
-        gcc -m32 load-linux.c -o load-linux -lusb-1.0
+        clang -Oz -m32 load-linux.c -o load-linux -lusb-1.0
         curl -L -o checkra1n "$CHECKRA1N_I686"
     fi
     rm -f load-linux.c
@@ -192,7 +193,7 @@ echo ' \___/ \__,_|\__, |___/___/\___|\__, |_| |_|_/_/\_\'
 echo '             |___/              |___/              '
 echo ''
 echo '          Made with <3 by raspberryenvoie'
-linux /boot/vmlinuz boot=live quiet
+linux /boot/vmlinuz boot=live
 initrd /boot/initrd.img
 boot
 EOF
@@ -211,7 +212,7 @@ umount work/chroot/dev/pts
 umount work/chroot/dev
 cp work/chroot/vmlinuz work/iso/boot
 cp work/chroot/initrd.img work/iso/boot
-mksquashfs work/chroot work/iso/live/filesystem.squashfs -noappend -e boot -comp xz -Xbcj x86
+mksquashfs work/chroot work/iso/live/filesystem.squashfs -noappend -e boot -comp xz -b 64M -Xbcj x86
 grub-mkrescue -o "odysseyn1x-$VERSION-$ARCH.iso" work/iso \
     --compress=xz \
     --fonts='' \

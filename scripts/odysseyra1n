@@ -100,11 +100,12 @@ blue_echo "(2) Copying resources to your device..."
 # * Added check if command is successful
 # * Added sshpass -p 'alpine'
 # * Removed .gz extension because where are using xz decompressed archives
-if sshpass -p 'alpine' scp -qP28605 -o "StrictHostKeyChecking no" -o "UserKnownHostsFile=/dev/null" org.coolstar.sileo_2.1-1_iphoneos-arm.deb \
+if sshpass -p 'alpine' scp -qP28605 -o "StrictHostKeyChecking no" -o "UserKnownHostsFile=/dev/null" bootstrap_1500.tar \
+	bootstrap_1600.tar bootstrap_1700.tar \
+	org.coolstar.sileo_2.1-1_iphoneos-arm.deb \
 	org.swift.libswift_5.0-electra2_iphoneos-arm.deb \
 	odysseyra1n-install.bash \
-	root@127.0.0.1:/var/root/ && \
-	xz -dc bootstraps.tar.xz | sshpass -p 'alpine' ssh -p28605 -o "StrictHostKeyChecking no" -o "UserKnownHostsFile=/dev/null" 'tar -x';then
+	root@127.0.0.1:/var/root/; then
 	done_echo 'Done copying resources to your device.'
 else
 	failed_echo 'Failed to copy resources to your device.'
