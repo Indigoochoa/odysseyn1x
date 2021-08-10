@@ -43,6 +43,7 @@ done
     umount work/chroot/proc
     umount work/chroot/sys
     umount work/chroot/dev
+    umount work/chroot/dev/pts
 } > /dev/null 2>&1
 rm -rf work/
 
@@ -69,10 +70,13 @@ fi
 
 # Configure the base system
 mkdir -p work/chroot work/iso/live work/iso/boot/grub
-debootstrap --variant=minbase --arch="$REPO_ARCH" stable work/chroot 'http://deb.debian.org/debian/'
+debootstrap --variant=minbase --arch="$REPO_ARCH" testing work/chroot 'http://deb.debian.org/debian/'
+mkdir -p work/chroot/dev/pts
 mount --bind /proc work/chroot/proc
 mount --bind /sys work/chroot/sys
 mount --bind /dev work/chroot/dev
+mount --bind /dev/pts work/chroot/dev/pts
+
 cp /etc/resolv.conf work/chroot/etc
 cat << EOF | chroot work/chroot /bin/bash
 # Set debian frontend to noninteractive
@@ -109,6 +113,12 @@ chroot work/chroot update-initramfs -u
         usr/lib/modules/*
 )
 
+# Download A9X resources
+mkdir -p work/chroot/opt
+cd work/chroot/opt
+curl -LO https://github.com/asdfugil/checkn1x32/raw/a8a9_14.5/PongoConsolidated.bin
+cd -
+
 # Copy scripts
 cp scripts/* work/chroot/usr/bin/
 
@@ -123,7 +133,7 @@ mkdir -p work/chroot/root/odysseyra1n/
         -O https://github.com/coolstar/Odyssey-bootstrap/raw/master/org.swift.libswift_5.0-electra2_iphoneos-arm.deb
     # Change compression format to xz
     gzip -dv ./*.tar.gz
-    xz -v9e -T0 ./*.tar
+    tar -c bootstrap_1{5..7}00.tar | xz -zce9T 0 > bootstraps.tar.xz
 )
 
 (
@@ -197,6 +207,7 @@ rm -f work/chroot/etc/resolv.conf
 # Build the ISO
 umount work/chroot/proc
 umount work/chroot/sys
+umount work/chroot/dev/pts
 umount work/chroot/dev
 cp work/chroot/vmlinuz work/iso/boot
 cp work/chroot/initrd.img work/iso/boot
