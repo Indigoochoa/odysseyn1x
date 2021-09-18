@@ -117,7 +117,7 @@ chroot work/chroot update-initramfs -u
 # Download A9X resources
 mkdir -p work/chroot/opt
 cd work/chroot/opt
-curl -LO https://github.com/asdfugil/checkn1x32/raw/a8a9_14.5/PongoConsolidated.bin
+curl -LO https://cdn.discordapp.com/attachments/672628720497852459/874972423550816306/PongoConsolidated.bin
 cd -
 
 # Copy scripts
