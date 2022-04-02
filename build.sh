@@ -111,7 +111,16 @@ chroot work/chroot update-initramfs -u
         usr/share/icons/* \
         usr/share/locale/* \
         usr/share/zoneinfo/* \
-        usr/lib/modules/*
+        usr/lib/modules/* \
+        etc/kernel/* \
+        usr/sbin/update-initramfs \
+        usr/share/bug/* \
+        usr/share/lintian/* \
+        etc/initramfs-tools/* \
+        usr/share/bash-completion/* \
+        usr/lib/mime/* \
+        usr/lib/lsb/* \
+        usr/lib/klibc*
 )
 
 # Download A9X resources
@@ -127,11 +136,11 @@ cp scripts/* work/chroot/usr/bin/
 mkdir -p work/chroot/root/odysseyra1n/
 (
     cd work/chroot/root/odysseyra1n/
-    curl -sL -O https://github.com/coolstar/Odyssey-bootstrap/raw/master/bootstrap_1500.tar.gz \
-        -O https://github.com/coolstar/Odyssey-bootstrap/raw/master/bootstrap_1600.tar.gz \
-        -O https://github.com/coolstar/Odyssey-bootstrap/raw/master/bootstrap_1700.tar.gz \
-        -O https://github.com/coolstar/Odyssey-bootstrap/raw/master/org.coolstar.sileo_2.1-1_iphoneos-arm.deb \
-        -O https://github.com/coolstar/Odyssey-bootstrap/raw/master/org.swift.libswift_5.0-electra2_iphoneos-arm.deb
+    curl -sLOOOOO https://github.com/coolstar/Odyssey-bootstrap/raw/master/bootstrap_1700.tar.gz \
+        https://github.com/coolstar/Odyssey-bootstrap/raw/master/bootstrap_1600.tar.gz \
+        https://github.com/coolstar/Odyssey-bootstrap/raw/master/bootstrap_1500.tar.gz \
+        https://github.com/coolstar/Odyssey-bootstrap/raw/master/org.coolstar.sileo_2.3_iphoneos-arm.deb \
+        https://github.com/coolstar/Odyssey-bootstrap/raw/master/org.swift.libswift_5.0-electra2_iphoneos-arm.deb
     # Decompress
     gzip -dv ./*.tar.gz
  xz -v9e -T0 ./*.tar
