@@ -49,12 +49,12 @@ else
     echo "${VER} not compatible."
     exit 1
 fi
+SNAPSHOT=$(snappy -s | cut -d ' ' -f 3 | tr -d '\n')
+snappy -f / -r "$SNAPSHOT" -t orig-fs > /dev/null 2>&1
+/binpack/usr/bin/xz -dvc bootstraps.tar.xz | /binpack/usr/bin/tar -xv
 mount -o rw,union,update /dev/disk0s1s1
 rm -rf /etc/{alternatives,apt,ssl,ssh,dpkg,profile{,.d}} /Library/dpkg /var/{cache,lib}
 tar --preserve-permissions -xkf bootstrap_${CFVER}.tar -C /
-SNAPSHOT=$(snappy -s | cut -d ' ' -f 3 | tr -d '\n')
-
-snappy -f / -r "$SNAPSHOT" -t orig-fs > /dev/null 2>&1
 /prep_bootstrap.sh >/dev/null 2>&1
 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/bin/X11:/usr/games
 if [[ $VER = 12.1* ]] || [[ $VER = 12.0* ]]; then
@@ -68,7 +68,7 @@ mkdir -p /etc/apt/sources.list.d /etc/apt/preferences.d
     echo "URIs: https://repo.theodyssey.dev/"
     echo "Suites: ./"
     echo "Components: "
-    echo ""   
+    echo ""
 } > /etc/apt/sources.list.d/odyssey.sources
 touch /var/lib/dpkg/available
 touch /.mount_rw
@@ -100,8 +100,7 @@ blue_echo "(2) Copying resources to your device..."
 # * Added check if command is successful
 # * Added sshpass -p 'alpine'
 # * Removed .gz extension because where are using xz decompressed archives
-if sshpass -p 'alpine' scp -qP28605 -o "StrictHostKeyChecking no" -o "UserKnownHostsFile=/dev/null" bootstrap_1500.tar \
-	bootstrap_1600.tar bootstrap_1700.tar \
+if sshpass -p 'alpine' scp -qP28605 -o "StrictHostKeyChecking no" -o "UserKnownHostsFile=/dev/null" bootstraps.tar.xz \
 	org.coolstar.sileo_2.1-1_iphoneos-arm.deb \
 	org.swift.libswift_5.0-electra2_iphoneos-arm.deb \
 	odysseyra1n-install.bash \

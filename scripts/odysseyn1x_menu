@@ -46,8 +46,6 @@ while true; do
       /usr/sbin/shutdown now
       ;;
     8)
-      odysseyn1x_logo
-      sleep 2
       /usr/sbin/reboot
       ;;
   esac

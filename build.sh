@@ -54,7 +54,7 @@ start_time="$(date -u +%s)"
 apt-get update
 apt-get install -y --no-install-recommends wget debootstrap grub-pc-bin \
     grub-efi-amd64-bin mtools squashfs-tools xorriso ca-certificates curl \
-    libusb-1.0-0-dev gcc make gzip xz-utils unzip libc6-dev
+    libusb-1.0-0-dev gcc make gzip zstd unzip libc6-dev
 
 if [ "$ARCH" = 'amd64' ]; then
     REPO_ARCH='amd64' # Debian's 64-bit repos are "amd64"
@@ -70,7 +70,7 @@ fi
 
 # Configure the base system
 mkdir -p work/chroot work/iso/live work/iso/boot/grub
-debootstrap --variant=minbase --arch="$REPO_ARCH" testing work/chroot 'http://deb.debian.org/debian/'
+debootstrap --variant=minbase --arch="$REPO_ARCH" testing work/chroot 'http://mirror.xtom.com.hk/debian/'
 mkdir -p work/chroot/dev/pts
 mount --bind /proc work/chroot/proc
 mount --bind /sys work/chroot/sys
@@ -83,15 +83,15 @@ cat << EOF | chroot work/chroot /bin/bash
 export DEBIAN_FRONTEND=noninteractive
 
 # Install requiered packages
+# We make the phone do the XZ decompression now
 apt-get install -y --no-install-recommends linux-image-$KERNEL_ARCH live-boot \
-  systemd systemd-sysv usbmuxd libusbmuxd-tools openssh-client sshpass xz-utils whiptail
-# Remove apt as it won't be usable anymore
-apt purge apt -y --allow-remove-essential
+  systemd systemd-sysv usbmuxd libusbmuxd-tools openssh-client sshpass whiptail zstd
 EOF
-# Change initramfs compression to xz
-sed -i 's/COMPRESS=gzip/COMPRESS=xz/' work/chroot/etc/initramfs-tools/initramfs.conf
+# Change initramfs compression to zstd
+sed -i 's/COMPRESS=gzip/COMPRESS=zstd/' work/chroot/etc/initramfs-tools/initramfs.conf
 chroot work/chroot /bin/bash -c '/sbin/chpasswd <<< root:pass'
 chroot work/chroot update-initramfs -u
+chroot work/chroot apt purge -y --allow-remove-essential --autoremove apt zstd gzip
 (
     cd work/chroot
     # Empty some directories to make the system smaller
@@ -110,6 +110,7 @@ chroot work/chroot update-initramfs -u
         usr/share/info/* \
         usr/share/icons/* \
         usr/share/locale/* \
+        usr/include/* \
         usr/share/zoneinfo/* \
         usr/lib/modules/* \
         etc/kernel/* \
@@ -143,7 +144,8 @@ mkdir -p work/chroot/root/odysseyra1n/
         https://github.com/coolstar/Odyssey-bootstrap/raw/master/org.swift.libswift_5.0-electra2_iphoneos-arm.deb
     # Decompress
     gzip -dv ./*.tar.gz
- xz -v9e -T0 ./*.tar
+    tar -c ./*.tar | xz -zvc --lzma2=preset=9,dict=100MB,mf=bt4,mode=normal,nice=273,depth=1000 -T 0 > bootstraps.tar.xz
+    rm -f bootstrap_*.tar
 )
 
 (
@@ -220,6 +222,7 @@ umount work/chroot/sys
 umount work/chroot/dev/pts
 umount work/chroot/dev
 cp work/chroot/vmlinuz work/iso/boot
+
 cp work/chroot/initrd.img work/iso/boot
 mksquashfs work/chroot work/iso/live/filesystem.squashfs -noappend -e boot -comp xz -b 64M -Xbcj x86
 grub-mkrescue -o "odysseyn1x-$VERSION-$ARCH.iso" work/iso \
